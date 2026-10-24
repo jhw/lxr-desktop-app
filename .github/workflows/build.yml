@@ -1,0 +1,58 @@
+# Copyright (C) 2026 Erica Synths
+# SPDX-License-Identifier: GPL-3.0-only
+
+# Builds the firmware with the Arm toolchain releases it is known to work with,
+# and runs the host unit tests (tests/). The firmware .img update file of each
+# build is kept as a workflow artifact.
+
+name: Build
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  firmware:
+    name: Firmware (Arm GNU ${{ matrix.gcc }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # 14.3.Rel1: tested release (README). 15.3.Rel2: current release, whose
+        # extra inlining has overflowed the 16 KB ITCM before.
+        gcc: ['14.3.Rel1', '15.3.Rel2']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          release: ${{ matrix.gcc }}
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Configure
+        run: cmake --preset release
+      - name: Build
+        run: cmake --build --preset release
+      - uses: actions/upload-artifact@v7
+        with:
+          name: firmware-gcc-${{ matrix.gcc }}
+          path: |
+            build/release/LXR_V2_V*.img
+            build/release/LXR_V2_STM32F765.elf
+            build/release/LXR_V2_STM32F765.map
+
+  host-tests:
+    name: Host unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Ninja
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+      - name: Configure
+        run: cmake --preset host-tests
+      - name: Build
+        run: cmake --build --preset host-tests
+      - name: Test
+        run: ctest --preset host-tests

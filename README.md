@@ -191,6 +191,20 @@ Every component is an OBJECT library linked into `LXR_V2_STM32F765`:
 
 Source files are listed explicitly in the `CMakeLists.txt` files. Add new files there.
 
+## Unit tests
+
+Parts of the firmware have unit tests that run on your computer instead of the LXR, in
+[`tests/`](tests/README.md). They need CMake, Ninja and a C compiler for your computer
+(on macOS the Xcode Command Line Tools), not the Arm toolchain:
+
+```sh
+cmake --preset host-tests
+cmake --build --preset host-tests
+ctest --preset host-tests
+```
+
+GitHub Actions builds the firmware and runs the tests for every push and pull request.
+
 ## Advanced: programming with a debug probe
 
 Not needed for updates: use the [SD card](#installing-the-update) for that. This section is for
