@@ -2350,7 +2350,11 @@ FRESULT preset_saveProject(uint8_t presetNr)
 	}
 	else
 	{
-		res = empty_directory(currentFolder);
+		// empty_directory() appends file names to the path it is given. currentFolder
+		// is only 13 bytes, so "/projNN/00-NAME.SND" overran it into kit 1's name.
+		char path[64]; // "/projNN" + up to four levels of "/8.3NAME.EXT"
+		strcpy(path, currentFolder);
+		res = empty_directory(path);
 		if(res != FR_OK)
 		{
 			lcd_process_display_interrupt = 1;
