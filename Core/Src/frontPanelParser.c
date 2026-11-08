@@ -107,6 +107,8 @@ void frontPanel_ccHandler()
 	DISABLE_SIGN_WARNING
 	if(parNr == 255/*PAR_BANK_CHANGE*/)
 	{
+		// A CC value is 0-127 but there are only NUM_KIT_SLOTS (64) kits in RAM.
+		if(frontParser_midiMsg.data2 >= NUM_KIT_SLOTS) return;
 		menu_selectedPresetNr[0] = frontParser_midiMsg.data2;
 		//preset_loadDrumset(frontParser_midiMsg.data2, 0);
 		preset_loadDrumsetRam(frontParser_midiMsg.data2,0, 0);
